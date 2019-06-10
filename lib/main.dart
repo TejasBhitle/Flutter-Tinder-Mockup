@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttery_dart2/layout.dart';
 
 void main() => runApp(MyApp());
 
@@ -41,10 +42,13 @@ class _MyHomePageState extends State<MyHomePage> {
             //TODO
             }
           ),
-      title: FlutterLogo(
-        size: 30.0,
-        colors: Colors.red,
-      ),
+      title: Center(
+          child: FlutterLogo(
+            size: 30.0,
+            colors: Colors.red,
+          )
+      )
+      ,
       actions: <Widget>[
         IconButton(
             icon: Icon(
@@ -98,12 +102,125 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _buildCardStack(){
+    return AnchoredOverlay(
+      showOverlay: true,
+      child: Center(),
+      overlayBuilder: (BuildContext context, Rect anchorBounds, Offset anchor){
+        return CenterAbout(
+          position: anchor,
+          child: Container(
+            width: anchorBounds.width,
+            height: anchorBounds.height,
+            padding: const EdgeInsets.all(16.0),
+            child: ProfileCard(),
+          )
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: Center(),
+      body: _buildCardStack(),
       bottomNavigationBar: _buildBottomBar(),
+    );
+  }
+}
+
+class ProfileCard extends StatefulWidget {
+  @override
+  _ProfileCardState createState() => _ProfileCardState();
+}
+
+class _ProfileCardState extends State<ProfileCard> {
+
+  Widget _buildBackground(){
+    return new Image.asset(
+      'assets/images/dp_tejas.png',
+      fit: BoxFit.cover,
+    );
+  }
+
+  Widget _buildProfileData(){
+    return Positioned(
+      left: 0.0,
+      right: 0.0,
+      bottom: 0.0,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.transparent,
+              Colors.black.withOpacity(0.8)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )
+        ),
+        padding: EdgeInsets.all(24),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      'Tejas Bhitle',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24.0
+                      ),
+                    ),
+                    Text(
+                      'Description',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.0
+                      ),
+                    ),
+                  ],
+                )
+            ),
+            Icon(
+              Icons.info,
+              color: Colors.white,
+            ),
+          ],
+        )
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x11000000),
+            blurRadius: 5.0,
+            spreadRadius: 2.0,
+          )
+        ]
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10.0),
+        child: Material(
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              _buildBackground(),
+              _buildProfileData(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
