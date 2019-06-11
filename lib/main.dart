@@ -346,9 +346,62 @@ class SelectedImageIndicator extends StatelessWidget {
 
   SelectedImageIndicator({ this.imageCount, this.visibleImageIndex});
 
+  Widget _buildInActiveIndicator(){
+    return Expanded(
+      child: Padding(
+          padding: const EdgeInsets.only(left: 2.0, right: 2.0),
+          child: Container(
+            height: 3.0,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(2.5),
+            ),
+          )
+      ),
+    );
+  }
+
+  Widget _buildActiveIndicator(){
+    return Expanded(
+      child: Padding(
+          padding: const EdgeInsets.only(left: 2.0, right: 2.0),
+          child: Container(
+            height: 3.0,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0x22000000),
+                  spreadRadius: 0.0,
+                  blurRadius: 2.0,
+                  offset: const Offset(0.0, 1.0)
+                )
+              ]
+            ),
+          )
+      ),
+    );
+  }
+
+  List<Widget> _buildIndicators(){
+    List<Widget> indicators = [];
+    for(int i=0;i<imageCount;i++){
+      indicators.add(
+        i==visibleImageIndex ? _buildActiveIndicator(): _buildInActiveIndicator()
+      );
+    }
+    return indicators;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: _buildIndicators(),
+      ),
+    );
   }
 
 }
