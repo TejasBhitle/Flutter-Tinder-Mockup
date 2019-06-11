@@ -24,5 +24,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/dp_tejas.png
+    - assets/images/image_01.png
+    - assets/images/image_02.jpg
 

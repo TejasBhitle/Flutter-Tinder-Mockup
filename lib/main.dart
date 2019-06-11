@@ -130,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+
 class ProfileCard extends StatefulWidget {
   @override
   _ProfileCardState createState() => _ProfileCardState();
@@ -138,9 +139,12 @@ class ProfileCard extends StatefulWidget {
 class _ProfileCardState extends State<ProfileCard> {
 
   Widget _buildBackground(){
-    return new Image.asset(
-      'assets/images/dp_tejas.png',
-      fit: BoxFit.cover,
+    return ImageBrowser(
+      imageAssetPaths: [
+        'assets/images/image_01.png',
+        'assets/images/image_02.jpg',
+      ],
+      visibleImageIndex: 0,
     );
   }
 
@@ -223,6 +227,130 @@ class _ProfileCardState extends State<ProfileCard> {
       ),
     );
   }
+}
+
+
+class ImageBrowser extends StatefulWidget {
+
+  final List<String> imageAssetPaths;
+  final int visibleImageIndex;
+
+  ImageBrowser({
+    this.imageAssetPaths,
+    this.visibleImageIndex,
+  });
+
+
+  @override
+  _ImageBrowserState createState() => _ImageBrowserState();
+}
+
+class _ImageBrowserState extends State<ImageBrowser> {
+
+  int visibleImageIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    visibleImageIndex = widget.visibleImageIndex;
+  }
+
+  @override
+  void didUpdateWidget(ImageBrowser oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if(widget.visibleImageIndex != oldWidget.visibleImageIndex){
+      setState(() {
+        visibleImageIndex = widget.visibleImageIndex;
+      });
+    }
+  }
+
+  void _prevImage(){
+    setState(() {
+      visibleImageIndex = (visibleImageIndex > 0)? visibleImageIndex-1: visibleImageIndex;
+    });
+  }
+
+  void _nextImage(){
+    setState(() {
+      visibleImageIndex = (visibleImageIndex < widget.imageAssetPaths.length -1 )
+          ? visibleImageIndex+1
+          : visibleImageIndex;
+    });
+  }
+
+  Widget _buildImageControls(){
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        GestureDetector(
+          onTap: _prevImage,
+          child: FractionallySizedBox(
+            widthFactor: 0.5,
+            heightFactor: 1.0,
+            alignment: Alignment.topLeft,
+            child: Container(
+              color: Colors.transparent
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: _nextImage,
+          child: FractionallySizedBox(
+            widthFactor: 0.5,
+            heightFactor: 1.0,
+            alignment: Alignment.topRight,
+            child: Container(
+                color: Colors.transparent
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        // Image
+        Image.asset(
+          widget.imageAssetPaths[visibleImageIndex],
+          fit: BoxFit.cover,
+        ),
+
+        // Image Indicator
+        Positioned(
+          top: 0.0,
+          left: 0.0,
+          right: 0.0,
+          child: SelectedImageIndicator(
+            imageCount: widget.imageAssetPaths.length,
+            visibleImageIndex: visibleImageIndex,
+          )
+        ),
+        
+        // Image Controls
+        _buildImageControls(),
+
+      ],
+    );
+  }
+}
+
+class SelectedImageIndicator extends StatelessWidget {
+
+  final int imageCount;
+  final int visibleImageIndex;
+
+  SelectedImageIndicator({ this.imageCount, this.visibleImageIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+
 }
 
 
