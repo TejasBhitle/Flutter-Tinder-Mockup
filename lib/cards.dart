@@ -16,6 +16,8 @@ class _DraggableCardState extends State<DraggableCard> with TickerProviderStateM
   Offset dragPosition;
   Offset slideBackStart;
   AnimationController slideBackAnimation;
+  Tween<Offset> slideOutTween;
+  AnimationController slideOutAnimation;
 
 
   @override
@@ -37,6 +39,24 @@ class _DraggableCardState extends State<DraggableCard> with TickerProviderStateM
           dragStart = null;
           slideBackStart = null;
           dragPosition = null;
+        });
+      }
+    });
+
+    slideOutAnimation = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addListener((){
+      setState(() {
+        cardOffset = slideOutTween.evaluate(slideOutAnimation);
+      });
+    })..addStatusListener((AnimationStatus status){
+      if(status == AnimationStatus.completed){
+        setState(() {
+          dragStart = null;
+          dragPosition = null;
+          slideOutTween = null;
+          cardOffset = const Offset(0.0,0.0);
         });
       }
     });
@@ -63,8 +83,25 @@ class _DraggableCardState extends State<DraggableCard> with TickerProviderStateM
   }
 
   void _onPanEnd(DragEndDetails details){
-    slideBackStart = cardOffset;
-    slideBackAnimation.forward(from: 0.0);
+
+    final dragVector = cardOffset / cardOffset.distance; //Unit vector
+    final isInNopeRegion = (cardOffset.dx / context.size.width) < -0.45;
+    final isInLikeRegion = (cardOffset.dx / context.size.width) > 0.45;
+    final isInSuperLikeRegion = (cardOffset.dy / context.size.height) < -0.40;
+
+    setState(() {
+      if(isInLikeRegion || isInNopeRegion){
+        slideOutTween = new Tween(begin: cardOffset, end: dragVector * ( 2* context.size.width));
+        slideOutAnimation.forward(from: 0.0);
+      } else if(isInSuperLikeRegion){
+        slideOutTween = new Tween(begin: cardOffset, end: dragVector * ( 2* context.size.height));
+        slideOutAnimation.forward(from: 0.0);
+
+      } else{
+        slideBackStart = cardOffset;
+        slideBackAnimation.forward(from: 0.0);
+      }
+    });
   }
 
   double _rotation(Rect dragBounds){
