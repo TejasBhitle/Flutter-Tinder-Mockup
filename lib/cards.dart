@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:fluttery_dart2/layout.dart';
 import 'package:tinder_mockup/imageBrowser.dart';
@@ -7,14 +9,50 @@ class DraggableCard extends StatefulWidget {
   _DraggableCardState createState() => _DraggableCardState();
 }
 
-class _DraggableCardState extends State<DraggableCard> {
+class _DraggableCardState extends State<DraggableCard> with TickerProviderStateMixin{
 
   Offset cardOffset = const Offset(0.0,0.0);
   Offset dragStart;
   Offset dragPosition;
+  Offset slideBackStart;
+  AnimationController slideBackAnimation;
+
+
+  @override
+  void initState() {
+    super.initState();
+    slideBackAnimation = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..addListener(()=> setState((){
+      cardOffset = Offset.lerp( //linearInterpolation
+          slideBackStart,
+          const Offset(0.0, 0.0),
+        Curves.elasticOut.transform(slideBackAnimation.value)
+      );
+    }))
+    ..addStatusListener((AnimationStatus status){
+      if(status == AnimationStatus.completed){
+        setState(() {
+          dragStart = null;
+          slideBackStart = null;
+          dragPosition = null;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    slideBackAnimation.dispose();
+    super.dispose();
+  }
 
   void _onPanStart(DragStartDetails details){
     dragStart = details.globalPosition;
+    if(slideBackAnimation.isAnimating){
+      slideBackAnimation.stop(canceled: true);
+    }
   }
 
   void _onPanUpdate(DragUpdateDetails details){
@@ -25,11 +63,23 @@ class _DraggableCardState extends State<DraggableCard> {
   }
 
   void _onPanEnd(DragEndDetails details){
-    setState(() {
-      cardOffset = const Offset(0.0,0.0);
-      dragStart = null;
-      dragPosition = null;
-    });
+    slideBackStart = cardOffset;
+    slideBackAnimation.forward(from: 0.0);
+  }
+
+  double _rotation(Rect dragBounds){
+    if(dragStart == null ){
+      return 0.0;
+    }
+    final rotationCornerMultiplier = dragStart.dy >= dragBounds.top + (dragBounds.height / 2)? 1: -1;
+    return (pi / 8) * (cardOffset.dx / dragBounds.width) * rotationCornerMultiplier;
+  }
+
+  Offset _rotationOrigin(Rect dragBounds){
+    if(dragStart == null){
+      return const Offset(0.0,0.0);
+    }
+    return dragStart - dragBounds.topLeft;
   }
 
   @override
@@ -41,7 +91,9 @@ class _DraggableCardState extends State<DraggableCard> {
           return CenterAbout(
               position: anchor,
               child: Transform(
-                transform: Matrix4.translationValues(cardOffset.dx, cardOffset.dy, 0.0),
+                transform: Matrix4.translationValues(cardOffset.dx, cardOffset.dy, 0.0)
+                ..rotateZ(_rotation(anchorBounds)),
+                origin: _rotationOrigin(anchorBounds),
                 child: Container(
                     width: anchorBounds.width,
                     height: anchorBounds.height,
