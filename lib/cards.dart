@@ -8,6 +8,30 @@ class DraggableCard extends StatefulWidget {
 }
 
 class _DraggableCardState extends State<DraggableCard> {
+
+  Offset cardOffset = const Offset(0.0,0.0);
+  Offset dragStart;
+  Offset dragPosition;
+
+  void _onPanStart(DragStartDetails details){
+    dragStart = details.globalPosition;
+  }
+
+  void _onPanUpdate(DragUpdateDetails details){
+    setState(() {
+      dragPosition = details.globalPosition;
+      cardOffset = dragPosition - dragStart;
+    });
+  }
+
+  void _onPanEnd(DragEndDetails details){
+    setState(() {
+      cardOffset = const Offset(0.0,0.0);
+      dragStart = null;
+      dragPosition = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnchoredOverlay(
@@ -16,11 +40,19 @@ class _DraggableCardState extends State<DraggableCard> {
         overlayBuilder: (BuildContext context, Rect anchorBounds, Offset anchor){
           return CenterAbout(
               position: anchor,
-              child: Container(
-                width: anchorBounds.width,
-                height: anchorBounds.height,
-                padding: const EdgeInsets.all(16.0),
-                child: ProfileCard(),
+              child: Transform(
+                transform: Matrix4.translationValues(cardOffset.dx, cardOffset.dy, 0.0),
+                child: Container(
+                    width: anchorBounds.width,
+                    height: anchorBounds.height,
+                    padding: const EdgeInsets.all(16.0),
+                    child: GestureDetector(
+                      onPanStart: _onPanStart,
+                      onPanUpdate: _onPanUpdate,
+                      onPanEnd: _onPanEnd,
+                      child: ProfileCard(),
+                    )
+                ),
               )
           );
         }
@@ -41,6 +73,9 @@ class _ProfileCardState extends State<ProfileCard> {
       imageAssetPaths: [
         'assets/images/image_01.png',
         'assets/images/image_02.jpg',
+        'assets/images/image_03.jpg',
+        'assets/images/image_04.jpg'
+
       ],
       visibleImageIndex: 0,
     );
