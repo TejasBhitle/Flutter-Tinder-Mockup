@@ -1,10 +1,17 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:fluttery_dart2/layout.dart';
-import 'package:tinder_mockup/imageBrowser.dart';
+import 'imageBrowser.dart';
+import 'matches.dart';
 
 class DraggableCard extends StatefulWidget {
+
+  TinderMatch tinderMatch;
+
+  DraggableCard({
+    this.tinderMatch
+  });
+
   @override
   _DraggableCardState createState() => _DraggableCardState();
 }
@@ -19,6 +26,8 @@ class _DraggableCardState extends State<DraggableCard> with TickerProviderStateM
   Tween<Offset> slideOutTween;
   AnimationController slideOutAnimation;
 
+  Decision decision;
+  GlobalKey profileCardKey = new GlobalKey(debugLabel: 'profile_card_key'); // to get context of another widget
 
   @override
   void initState() {
@@ -57,15 +66,83 @@ class _DraggableCardState extends State<DraggableCard> with TickerProviderStateM
           dragPosition = null;
           slideOutTween = null;
           cardOffset = const Offset(0.0,0.0);
+
+          widget.tinderMatch.reset();
         });
       }
     });
+    
+    widget.tinderMatch.addListener(_onTinderMatchChange);
+    decision = widget.tinderMatch.decision;
   }
 
   @override
   void dispose() {
+    widget.tinderMatch.removeListener(_onTinderMatchChange);
     slideBackAnimation.dispose();
     super.dispose();
+  }
+
+  // housekeeping stuff, just in case of any memory leak
+  @override
+  void didUpdateWidget(DraggableCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if(widget.tinderMatch != oldWidget.tinderMatch){
+      oldWidget.tinderMatch.removeListener(_onTinderMatchChange);
+      widget.tinderMatch.addListener(_onTinderMatchChange);
+    }
+  }
+
+  void _onTinderMatchChange(){
+    if(widget.tinderMatch.decision != decision){
+      switch(widget.tinderMatch.decision){
+        case Decision.like:
+          _slideRight();
+          break;
+        case Decision.superlike:
+          _slideUp();
+          break;
+        case Decision.dislike:
+          _slideLeft();
+          break;
+        case Decision.undecided:
+          break;
+      }
+    }
+    decision = widget.tinderMatch.decision;
+  }
+
+
+  void _slideLeft(){
+    final screenWidth = context.size.width;
+    dragStart = _chooseRandomDragStart();
+    slideOutTween = Tween(begin: const Offset(0.0, 0.0), end: Offset(-2 * screenWidth, 0.0));
+    slideOutAnimation.forward(from: 0.0);
+  }
+
+  void _slideRight(){
+    final screenWidth = context.size.width;
+    dragStart = _chooseRandomDragStart();
+    slideOutTween = Tween(begin: const Offset(0.0, 0.0), end: Offset(2 * screenWidth, 0.0));
+    slideOutAnimation.forward(from: 0.0);
+  }
+
+  void _slideUp(){
+    final screenHeight = context.size.height;
+    dragStart = _chooseRandomDragStart();
+    slideOutTween = Tween(begin: const Offset(0.0, 0.0), end: Offset(0.0,-2 * screenHeight));
+    slideOutAnimation.forward(from: 0.0);
+  }
+
+
+  Offset _chooseRandomDragStart(){
+    // get the cardTopleft cordinate in Draggable card wrt the (0.0, 0.0) point in profileCard
+    final profileCardContext = profileCardKey.currentContext;
+    final cardTopLeft = (profileCardContext.findRenderObject() as RenderBox).localToGlobal(const Offset(0.0,0.0));
+
+    final dragStartY = profileCardContext.size.height * (Random().nextDouble() < 0.5 ? 0.25: 0.75);
+
+    return Offset(profileCardContext.size.width/2 + cardTopLeft.dx, dragStartY + cardTopLeft.dy);
   }
 
   void _onPanStart(DragStartDetails details){
@@ -132,15 +209,16 @@ class _DraggableCardState extends State<DraggableCard> with TickerProviderStateM
                 ..rotateZ(_rotation(anchorBounds)),
                 origin: _rotationOrigin(anchorBounds),
                 child: Container(
-                    width: anchorBounds.width,
-                    height: anchorBounds.height,
-                    padding: const EdgeInsets.all(16.0),
-                    child: GestureDetector(
-                      onPanStart: _onPanStart,
-                      onPanUpdate: _onPanUpdate,
-                      onPanEnd: _onPanEnd,
-                      child: ProfileCard(),
-                    )
+                  key: profileCardKey,
+                  width: anchorBounds.width,
+                  height: anchorBounds.height,
+                  padding: const EdgeInsets.all(16.0),
+                  child: GestureDetector(
+                    onPanStart: _onPanStart,
+                    onPanUpdate: _onPanUpdate,
+                    onPanEnd: _onPanEnd,
+                    child: ProfileCard(),
+                  )
                 ),
               )
           );

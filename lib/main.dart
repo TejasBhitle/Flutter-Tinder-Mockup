@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tinder_mockup/cards.dart';
+import 'cards.dart';
+import 'matches.dart';
 
 
 void main() => runApp(MyApp());
@@ -29,6 +30,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  TinderMatch match =  TinderMatch();
 
   Widget _buildAppBar(){
     return AppBar(
@@ -80,17 +83,23 @@ class _MyHomePageState extends State<MyHomePage> {
             RoundIconButton.large(
               icon: Icons.clear,
               iconColor: Colors.red,
-              onPressed: (){},
+              onPressed: (){
+                match.dislike();
+              },
             ),
             RoundIconButton.large(
               icon: Icons.star,
               iconColor: Colors.blue,
-              onPressed: (){},
+              onPressed: (){
+                match.superlike();
+              },
             ),
             RoundIconButton.small(
               icon: Icons.favorite,
               iconColor: Colors.green,
-              onPressed: (){},
+              onPressed: (){
+                match.like();
+              },
             ),
             RoundIconButton.small(
               icon: Icons.lock,
@@ -107,7 +116,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: DraggableCard(),
+      body: DraggableCard(
+        tinderMatch: match,
+      ),
       bottomNavigationBar: _buildBottomBar(),
     );
   }
