@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'cards.dart';
 import 'matches.dart';
-
+import 'profiles.dart';
 
 void main() => runApp(MyApp());
+
+final MatchEngine matchEngine = MatchEngine(
+  matches: demoProfiles.map((Profile profile){
+    return TinderMatch(profile: profile);
+  }).toList(),
+);
 
 class MyApp extends StatelessWidget {
 
@@ -31,7 +37,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  TinderMatch match =  TinderMatch();
 
   Widget _buildAppBar(){
     return AppBar(
@@ -84,21 +89,21 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icons.clear,
               iconColor: Colors.red,
               onPressed: (){
-                match.dislike();
-              },
-            ),
-            RoundIconButton.large(
-              icon: Icons.star,
-              iconColor: Colors.blue,
-              onPressed: (){
-                match.superlike();
+                matchEngine.currentMatch.dislike();
               },
             ),
             RoundIconButton.small(
+              icon: Icons.star,
+              iconColor: Colors.blue,
+              onPressed: (){
+                matchEngine.currentMatch.superlike();
+              },
+            ),
+            RoundIconButton.large(
               icon: Icons.favorite,
               iconColor: Colors.green,
               onPressed: (){
-                match.like();
+                matchEngine.currentMatch.like();
               },
             ),
             RoundIconButton.small(
@@ -116,8 +121,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: DraggableCard(
-        tinderMatch: match,
+      body: CardStack(
+        matchEngine: matchEngine,
       ),
       bottomNavigationBar: _buildBottomBar(),
     );
